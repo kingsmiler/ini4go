@@ -10,6 +10,16 @@ type Line interface {
     ToString() string
 }
 
+type BlankLine struct {
+}
+
+func (bl BlankLine) ToString() string  {
+    return ""
+}
+
+var BLANK_LINE  = &BlankLine{}
+
+
 type Option struct {
     name      string
     value     string
@@ -31,14 +41,14 @@ func NewOption(name string, value string, separator rune, format OptionFormat) (
 func (option Option) Set(value string) {
 
     if (len(value) > 0) {
-        re := regexp.MustCompile("["+ ILLEGAL_VALUE_CHARS + "]")
+        re := regexp.MustCompile("[" + ILLEGAL_VALUE_CHARS + "]")
         value = re.ReplaceAllLiteralString(value, "")
     }
 
     option.value = value
 }
 
-func (option Option) ToString() string  {
+func (option Option) ToString() string {
 
     return option.format.Format(option.name, option.value, option.separator)
 }
@@ -50,6 +60,21 @@ func (option Option) validName() bool {
     }
 
     return true;
+}
+
+type Comment struct {
+    content   string
+    delimiter rune
+}
+
+func newComment(content string) *Comment {
+
+    return &Comment{content:content, delimiter: '#'}
+}
+
+func (comment Comment) ToString() string {
+
+    return string(comment.delimiter) + " " + comment.content;
 }
 
 const (

@@ -13,3 +13,6 @@ func TestRunes(t *testing.T) {
     fmt.Println(*sess)
 }
 
+func TestBlankLine(t *testing.T) {
+    fmt.Println(BLANK_LINE.ToString())
+}
