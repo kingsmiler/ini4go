@@ -209,9 +209,10 @@ func (section Section) RemoveOption(optionName string) bool {
     normed := section.normOption(optionName)
 
     if section.HasOption(normed) {
-        delete(section.options, normed)
-        //this.lines.remove(getOption(normed));
-        //this.options.remove(normed);
+        DeleteInMap(section.options, normed)
+        DeleteInSlice(section.lines, section.getOption(normed))
+
+        return true
     } else {
         return false
     }
@@ -219,13 +220,15 @@ func (section Section) RemoveOption(optionName string) bool {
 
 
 /**
- * 删除 slice 中的指定元素。
+ * 删除 map 中的指定元素。
  *
  */
-func DeleteInMap(targetMap map[interface{}]interface{}, item interface{}) {
+func DeleteInMap(targetMap interface{}, item interface{}) {
 
-    if _, exists := targetMap[item]; exists {
-        delete(targetMap, item)
+    value := reflect.Indirect(reflect.ValueOf(targetMap))
+
+    if value.MapIndex(reflect.ValueOf(item)).IsValid() {
+        value.SetMapIndex(reflect.ValueOf(item), reflect.Value{})
     }
 }
 
