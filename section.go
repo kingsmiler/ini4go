@@ -5,6 +5,7 @@ import (
     "errors"
     "sort"
     "github.com/cznic/sortutil"
+    "reflect"
 )
 
 const (
@@ -18,7 +19,7 @@ var (
 
     default_option_whitespace = []rune{' ', '\t' }
     default_option_delimiters = []rune{'=', ':'}
-    default_comment_delimiters = []rune{';', '#'}
+    default_comment_delimiters = []rune{ '#', ';' }
     default_case_sensitivity = false
     default_option_format = "%s %s %s"
 )
@@ -179,4 +180,97 @@ func (section Section) GetOptionValue(name string) string {
     }
 
     return "";
+}
+
+// Sets an option's value and creates the option if it doesn't exist.
+func (section Section) SetOptionValue(optionName string, value string) {
+    section.SetOptionValueWithDelimiter(optionName, value, section.optionDelims[0])
+}
+
+// Sets an option's value and creates the option if it doesn't exist.
+func (section Section) SetOptionValueWithDelimiter(optionName string, value string, delimiter rune) {
+    normed := section.normOption(optionName);
+    if section.HasOption(normed) {
+        option := section.getOption(normed)
+        option.value = value
+    } else {
+        // Option constructor might throw IllegalArgumentException
+        option, _ := NewOption(normed, value, delimiter, *section.optionFormat)
+
+        section.options[normed] = *option
+        section.lines = append(section.lines, option)
+    }
+}
+
+/**
+ * Removes an option if it exists.
+ */
+func (section Section) RemoveOption(optionName string) bool {
+    normed := section.normOption(optionName)
+
+    if section.HasOption(normed) {
+        delete(section.options, normed)
+        //this.lines.remove(getOption(normed));
+        //this.options.remove(normed);
+    } else {
+        return false
+    }
+}
+
+
+/**
+ * 删除 slice 中的指定元素。
+ *
+ */
+func DeleteInMap(targetMap map[interface{}]interface{}, item interface{}) {
+
+    if _, exists := targetMap[item]; exists {
+        delete(targetMap, item)
+    }
+}
+
+/**
+ * 删除 slice 中的指定元素。
+ *
+ */
+func DeleteInSlice(slice interface{}, item interface{}) {
+    index := -1
+    ve := reflect.Indirect(reflect.ValueOf(slice))
+    size := ve.Len()
+
+    for i := 0; i < size; i++ {
+        if reflect.DeepEqual(ve.Index(i).Interface(), item) {
+            index = i
+            break
+        }
+    }
+
+    if index >= 0 {
+        ve.Set(reflect.AppendSlice(ve.Slice(0, index), ve.Slice(index + 1, size)))
+    }
+}
+
+/**
+ * 检查 obj 是否存在于 collection 中， collection 类型可以为 slice、array和map。
+ * 如果存在，返回其下标（slice和array），或者 1 （map）；
+ * 如果不存在，返回-1。
+ */
+func Contains(collection interface{}, obj interface{}) int {
+    targetValue := reflect.ValueOf(collection)
+    existed := -1
+    switch reflect.TypeOf(collection).Kind() {
+    case reflect.Slice, reflect.Array:
+        for i := 0; i < targetValue.Len(); i++ {
+            if reflect.DeepEqual(targetValue.Index(i).Interface(), obj) {
+                existed = i
+                break
+            }
+        }
+    case reflect.Map:
+        if targetValue.MapIndex(reflect.ValueOf(obj)).IsValid() {
+            existed = 1
+        }
+    }
+
+    return existed
 }
