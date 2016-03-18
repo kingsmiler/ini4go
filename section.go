@@ -6,12 +6,15 @@ import (
     "sort"
     "github.com/cznic/sortutil"
     "reflect"
+    "regexp"
 )
 
 const (
     HEADER_START rune = '['
     HEADER_END rune = ']'
 )
+
+const NEWLINE_CHARS string = "\n\r"
 
 var (
     max_name_length int = 1024
@@ -216,6 +219,33 @@ func (section Section) RemoveOption(optionName string) bool {
     } else {
         return false
     }
+}
+
+
+/**
+ * Adds a comment line to the end of this section. A comment spanning
+ * several lines (ie with line breaks) will be split up, one comment
+ * line for each line.
+ *
+ * @param comment the comment
+ */
+func (section Section) AddCommentWithDefaultDelimiter(comment string) {
+    section.AddComment(comment, section.commentDelims[0])
+}
+
+func (section Section) AddComment(comment string, delimiter rune) {
+
+    re := regexp.MustCompile("[" + NEWLINE_CHARS + "]")
+    comment = re.ReplaceAllLiteralString(strings.TrimSpace(comment), "")
+
+    section.lines = append(section.lines, *newComment(comment, delimiter))
+}
+
+/**
+ * Adds a blank line to the end of this section.
+ */
+func (section Section) AddBlankLine() {
+    section.lines = append(section.lines, BLANK_LINE)
 }
 
 

@@ -67,9 +67,14 @@ type Comment struct {
     delimiter rune
 }
 
-func newComment(content string) *Comment {
+func newComment(content string, delimiter rune) *Comment {
 
-    return &Comment{content:content, delimiter: '#'}
+    return &Comment{content:content, delimiter: delimiter}
+}
+
+func newCommentWithDefaultDelimiter(content string) *Comment {
+
+    return newComment(content, '#')
 }
 
 func (comment Comment) ToString() string {
